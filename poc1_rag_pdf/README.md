@@ -3,7 +3,8 @@
 A single-file Streamlit app that does Retrieval-Augmented Generation over a
 user-uploaded PDF using `sentence-transformers` (`all-MiniLM-L6-v2`), an
 in-memory FAISS index (cosine similarity via inner product on normalised
-embeddings), and Anthropic Claude.
+embeddings), and an LLM served through [OpenRouter](https://openrouter.ai)
+(default model: `anthropic/claude-sonnet-4`).
 
 ## Setup
 
@@ -11,12 +12,14 @@ embeddings), and Anthropic Claude.
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env   # then edit .env and set ANTHROPIC_API_KEY
+cp .env.example .env   # then edit .env and set OPENROUTER_API_KEY
 ```
 
-The app loads `ANTHROPIC_API_KEY` from a local `.env` file via
+The app loads `OPENROUTER_API_KEY` from a local `.env` file via
 `python-dotenv` (falling back to a normal environment variable). `.env` is
-git-ignored so the key never ends up in the repo.
+git-ignored so the key never ends up in the repo. To switch models, edit
+`LLM_MODEL` in `app.py` to any [OpenRouter model slug](https://openrouter.ai/models)
+(e.g. `openai/gpt-4o-mini`, `meta-llama/llama-3.1-70b-instruct`).
 
 ## Run
 

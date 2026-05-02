@@ -2,5 +2,5 @@ streamlit
 pypdf
 sentence-transformers
 faiss-cpu
-anthropic
+openai
 python-dotenv

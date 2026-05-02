@@ -18,17 +18,18 @@ from typing import List
 import faiss
 import numpy as np
 import streamlit as st
-from anthropic import Anthropic
 from dotenv import load_dotenv
+from openai import OpenAI
 from pypdf import PdfReader
 from sentence_transformers import SentenceTransformer
 
 # Load environment variables from a local .env file (if present) so the
-# ANTHROPIC_API_KEY does not have to be exported manually each session.
+# OPENROUTER_API_KEY does not have to be exported manually each session.
 load_dotenv()
 
 EMBED_MODEL_NAME = "all-MiniLM-L6-v2"
-ANTHROPIC_MODEL = "claude-sonnet-4-6"
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+LLM_MODEL = "anthropic/claude-sonnet-4"  # any OpenRouter model slug works
 CHUNK_TOKENS = 500
 CHUNK_OVERLAP = 50
 
@@ -48,11 +49,11 @@ def load_embedder() -> SentenceTransformer:
 
 
 @st.cache_resource(show_spinner=False)
-def get_anthropic_client() -> Anthropic:
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+def get_llm_client() -> OpenAI:
+    api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set.")
-    return Anthropic(api_key=api_key)
+        raise RuntimeError("OPENROUTER_API_KEY environment variable is not set.")
+    return OpenAI(api_key=api_key, base_url=OPENROUTER_BASE_URL)
 
 
 # ---------------------------------------------------------------------------
@@ -132,15 +133,16 @@ def build_user_prompt(question: str, retrieved: List[Chunk]) -> str:
     )
 
 
-def call_anthropic(client: Anthropic, prompt: str) -> str:
-    msg = client.messages.create(
-        model=ANTHROPIC_MODEL,
+def call_llm(client: OpenAI, prompt: str) -> str:
+    resp = client.chat.completions.create(
+        model=LLM_MODEL,
         max_tokens=1024,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": prompt},
+        ],
     )
-    parts = [b.text for b in msg.content if getattr(b, "type", None) == "text"]
-    return "\n".join(parts).strip()
+    return (resp.choices[0].message.content or "").strip()
 
 
 # ---------------------------------------------------------------------------
@@ -154,9 +156,9 @@ def main() -> None:
         st.header("Settings")
         top_k = st.slider("Top-k chunks", min_value=1, max_value=10, value=4)
         st.caption(f"Embedding model: `{EMBED_MODEL_NAME}`")
-        st.caption(f"LLM: `{ANTHROPIC_MODEL}`")
-        if not os.environ.get("ANTHROPIC_API_KEY"):
-            st.warning("Set ANTHROPIC_API_KEY in your environment.")
+        st.caption(f"LLM: `{LLM_MODEL}` via OpenRouter")
+        if not os.environ.get("OPENROUTER_API_KEY"):
+            st.warning("Set OPENROUTER_API_KEY in your environment or .env file.")
 
     uploaded = st.file_uploader("Upload a PDF", type=["pdf"])
 
@@ -198,9 +200,9 @@ def main() -> None:
         retrieved = [st.session_state.chunks[i] for i in ids[0] if i != -1]
 
         try:
-            client = get_anthropic_client()
-            with st.spinner("Asking Claude…"):
-                answer = call_anthropic(
+            client = get_llm_client()
+            with st.spinner("Asking the LLM…"):
+                answer = call_llm(
                     client, build_user_prompt(question, retrieved)
                 )
         except Exception as e:  # noqa: BLE001
