@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Lecture / source PDFs — don't commit binary slide decks or sample PDFs
+*.pdf
+
+# macOS
+.DS_Store
