@@ -1,7 +1,8 @@
 # RAG-Vector-Databases-Agentic-AI
 
 A collection of small proof-of-concept projects exploring Retrieval-Augmented
-Generation (RAG), vector databases, and agentic AI patterns.
+Generation (RAG), vector databases, and Agentic AI patterns.
+
 
 ## Projects
 
