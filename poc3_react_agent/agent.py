@@ -75,7 +75,10 @@ def _parse(response: str):
 def _client() -> OpenAI:
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
-        raise RuntimeError("OPENROUTER_API_KEY is not set (put it in .env).")
+        raise RuntimeError(
+            "OPENROUTER_API_KEY is not set. Copy .env.example to .env and "
+            "paste your OpenRouter key (get one at https://openrouter.ai/keys)."
+        )
     return OpenAI(api_key=api_key, base_url=OPENROUTER_BASE_URL)
 
 

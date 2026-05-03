@@ -81,7 +81,7 @@ plug PoC 1's retriever into PoC 3 as a new agent tool).
 
 | Requirement       | Notes                                                                 |
 | ----------------- | --------------------------------------------------------------------- |
-| Python 3.10+      | All PoCs use modern type hints and dataclasses.                       |
+| Python 3.9+       | All PoCs were tested on Python 3.9; 3.11+ is fine too.                |
 | ~3 GB free disk   | The MiniLM embedding model and FAISS / Chroma indices sit on disk.    |
 | OpenRouter key    | Required for **PoC 1** and **PoC 3** (PoC 2 runs fully offline). Get one at <https://openrouter.ai/keys>. |
 | VS Code + Copilot | Only needed for **Path B** (reproducing with Agent mode).             |

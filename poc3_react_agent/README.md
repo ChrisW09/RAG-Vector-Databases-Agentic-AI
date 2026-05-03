@@ -225,17 +225,26 @@ python agent.py "What is 17 * 23?"
 python agent.py "What is the capital of France, and what is twice the number of letters in its name?"
 ```
 
-**Expected trace shape:**
+**Verified output (Claude Sonnet 4 via OpenRouter):**
 
 ```
-[step 1] Action: search        → "Paris"
-[step 2] Action: calculator    → "10"   (input: 5 * 2)
-[step 3] Action: final_answer  → "The capital of France is Paris;
-                                  twice the number of letters is 10."
+[step 1] Thought: I need to find the capital of France first…
+[step 1] Action: search
+[step 1] Action Input: capital of france
+[step 1] Observation: Paris
+
+[step 2] Thought: Paris has 5 letters (P-a-r-i-s). I'll compute 2 * 5.
+[step 2] Action: calculator
+[step 2] Action Input: 2 * 5
+[step 2] Observation: 10
+
+[step 3] Action: final_answer
+[step 3] Action Input: The capital of France is Paris, and twice the
+                       number of letters in its name is 10.
 ```
 
 ✅ This is the canonical ReAct pattern: the *result* of step 1 (Paris)
-informs the *argument* of step 2 (5 letters → `5 * 2`).
+informs the *argument* of step 2 (5 letters → `2 * 5`).
 
 ### Test 4 — Graceful failure when knowledge is missing
 
@@ -243,11 +252,13 @@ informs the *argument* of step 2 (5 letters → `5 * 2`).
 python agent.py "What is the capital of Mars?"
 ```
 
-**Expected behaviour:**
+**Verified behaviour:**
 
-- Step 1: `search` returns `NOT FOUND: 'capital of mars'. Known keys: …`.
-- Step 2: the agent recognises this and either tries a different tool
-  or calls `final_answer` admitting it doesn't know.
+- Step 1: `search('capital of mars')` returns `NOT FOUND: 'capital of mars'.
+  Known keys: …` (whole-word matching prevents false hits like `pi`
+  matching `caPItal`).
+- Step 2: the agent reads the available keys, realises Mars isn't there,
+  and calls `final_answer` admitting Mars has no capital city.
 
 ✅ The agent must *not* hallucinate "Olympus Mons" or similar.
 
@@ -278,6 +289,7 @@ than execute the call. If you ever see `hacked` printed, the
 | `RuntimeError: OPENROUTER_API_KEY is not set` | `.env` missing or empty. | `cp .env.example .env` and paste your key. |
 | `ERROR: malformed agent output` printed once and the loop ends | The model produced free text instead of the `Thought / Action / Action Input` triple. | Try a stronger model slug; check that you didn't reduce `max_tokens` too low. |
 | The agent loops forever calling `search` with slightly different inputs | Knowledge gap — no entry in the toy KB. Add it to `_KB` in [tools.py](tools.py) or accept that `final_answer` should admit uncertainty. | Lower `MAX_STEPS` to enforce earlier termination. |
+| `search('capital of mars')` returns an unrelated value (e.g. `3.14159265`) | An old version used substring matching, so `pi` matched `caPItal`. | Current `search()` uses **whole-word set containment** — upgrade to the latest [tools.py](tools.py). |
 | `LLM call failed: 401` | Invalid OpenRouter key. | Generate a new key. |
 
 ---

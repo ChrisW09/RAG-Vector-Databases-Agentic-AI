@@ -65,13 +65,25 @@ _KB: Dict[str, str] = {
 
 
 def search(query: str) -> str:
-    """Lookup a fact in the toy KB. Case-insensitive substring match."""
+    """Lookup a fact in the toy KB.
+
+    Match strategy:
+      1. Exact normalised match on the query string.
+      2. Otherwise, whole-word containment in either direction (so
+         "capital of france" matches "what is the capital of france", but
+         "pi" does NOT match "capital" — substrings are not enough).
+    """
     q = query.lower().strip().rstrip("?.! ")
     if q in _KB:
         return _KB[q]
+
+    q_words = set(q.split())
     for key, value in _KB.items():
-        if key in q or q in key:
+        key_words = set(key.split())
+        # All key words appear as whole words in the query, OR vice versa.
+        if key_words.issubset(q_words) or q_words.issubset(key_words):
             return value
+
     return f"NOT FOUND: '{query}'. Known keys: {', '.join(sorted(_KB))}"
 
 
