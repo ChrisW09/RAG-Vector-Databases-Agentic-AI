@@ -188,6 +188,46 @@ streamlit run app.py
 
 ---
 
+## 📚 Example data & guided walkthrough
+
+The catalog is **synthesised on first run** by [sample_data.py](sample_data.py)
+— no download, no API key. Each row looks like this:
+
+```csv
+id,title,description,category,price
+P00001,Soft Merino Hoodie,A breathable wool hoodie perfect for the office on chilly mornings.,Apparel,89.0
+P00002,Trail Runner GPS Watch,Lightweight GPS watch built for marathon training and ultra runs.,Sports,249.0
+P00003,Linen Bedside Lamp,A quiet warm-light lamp ideal for the bedroom.,Home,59.0
+…
+```
+
+To inspect or tweak it before launching the app:
+
+```bash
+python -c "from sample_data import get_products; print(get_products(n=5))"
+# regenerate with a different seed / size:
+python -c "from sample_data import get_products; get_products(n=500, seed=42)"
+```
+
+### Walkthrough — copy these queries one by one
+
+Open the app, leave **Category = All** for the first three queries, then
+toggle the filter for the last two.
+
+| # | Query | Category filter | What you should see |
+| --- | --- | --- | --- |
+| 1 | `cosy office sweater` | All | Top results are hoodies and sweaters from Apparel; similarities ≈ 0.50–0.60. The word *cosy* may not appear at all in the descriptions — MiniLM has matched *cosy ≈ soft / breathable*. |
+| 2 | `noise cancelling headphones` | All | Electronics dominate. Similarities ≈ 0.55–0.70 (keyword + semantics agree → highest scores in the demo). |
+| 3 | `gift for a runner` | All | Cross-category mix: Sports (watches, shoes), Apparel (running tops), maybe Electronics (earbuds). |
+| 4 | `gift for a runner` | **Sports** | Same query, but now **every row** has `category = Sports`. Similarities may drop slightly — that's the cost of restricting the candidate pool. |
+| 5 | `xkcd asdf qwerty` | All | Garbage-in test. With `Min similarity = 0.0` you'll still see results (low scores). Raise the slider to `0.4` and the table empties out — that's the *explicit refusal* pattern. |
+
+> 💡 **Look at the similarity column, not just the titles.** A drop from
+> 0.65 → 0.30 across the top-k tells you "the model is reaching" —
+> often more useful than the rank itself.
+
+---
+
 ## 🧪 Test plan
 
 Below is a script you can follow to verify all four properties — **vector

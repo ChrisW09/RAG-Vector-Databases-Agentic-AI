@@ -180,6 +180,62 @@ python agent.py "What is the capital of Japan, and what is 8 squared?"
 
 ---
 
+## 📚 Example data & query cheatsheet
+
+The agent's "knowledge" lives in a tiny dictionary `_KB` at the top of
+[tools.py](tools.py). The full set of facts the `search` tool can find:
+
+| Key | Value |
+| --- | --- |
+| `capital of france` | Paris |
+| `capital of germany` | Berlin |
+| `capital of japan` | Tokyo |
+| `capital of brazil` | Brasília |
+| `capital of australia` | Canberra |
+| `speed of light` | 299,792,458 m/s |
+| `pi` | 3.14159265 |
+| `founder of microsoft` | Bill Gates and Paul Allen |
+| `author of 1984` | George Orwell |
+
+Anything else returns `NOT FOUND` plus the list of known keys — which
+the agent then has to handle gracefully (Test 4 below).
+
+### Curated example queries
+
+Copy these one by one and read the printed traces. Each query is
+designed to exercise a different ReAct behaviour.
+
+| # | Command | Behaviour you should see |
+| --- | --- | --- |
+| 1 | `python agent.py "Who wrote 1984?"` | **2 steps**: `search` → `final_answer`. Pure lookup. |
+| 2 | `python agent.py "What is 17 * 23 + 5?"` | **2 steps**: `calculator` → `final_answer`. Pure math. |
+| 3 | `python agent.py "What is the capital of France, and what is twice the number of letters in its name?"` | **3 steps**: `search` (Paris) → `calculator` (`2 * 5 = 10`) → `final_answer`. The headline multi-tool, multi-step demo. |
+| 4 | `python agent.py "What is the capital of Japan, and what is 8 squared?"` | **3 steps**: `search` (Tokyo) → `calculator` (`8 ** 2 = 64`) → `final_answer`. |
+| 5 | `python agent.py "What is the capital of Mars?"` | `search` returns `NOT FOUND` → agent calls `final_answer` admitting Mars has no capital. **Must NOT hallucinate**. |
+| 6 | `python agent.py "Compute __import__('os').system('echo hacked')"` | `calculator` returns `ERROR: Disallowed expression: …`. **Safety boundary** — if you ever see `hacked` printed, the allow-list has been broken. |
+
+> 💡 **Read traces top-to-bottom.** Every `Observation:` you see was
+> produced by *Python code* (the tool), not the LLM. Every `Thought:`
+> and `Action:` was produced by the LLM. That separation is what makes
+> the agent auditable.
+
+### Adding your own facts
+
+Edit `_KB` in [tools.py](tools.py) and restart:
+
+```python
+_KB = {
+    # …existing entries…
+    "capital of mars": "Mars has no capital — it is uninhabited.",
+    "boiling point of water": "100 °C at sea level.",
+}
+```
+
+Then run `python agent.py "What is the boiling point of water?"` to see
+the new fact picked up.
+
+---
+
 ## 🧪 Test plan
 
 The point of these tests is not just *"did it answer?"* — it's to read

@@ -166,10 +166,50 @@ Streamlit opens a browser tab (typically <http://localhost:8501>).
 
 ---
 
+## 📚 Example data & guided walkthrough
+
+Don't have a PDF handy? Generate the bundled fake-company handbook:
+
+```bash
+pip install fpdf2                              # one-off, dev-only dep
+python sample_data/make_sample_pdf.py          # writes sample_data/acme_handbook.pdf
+```
+
+This produces a tiny **3-page PDF** (`acme_handbook.pdf`) containing
+deliberately distinctive facts that make retrieval easy to eyeball:
+
+| Page | Topic | Facts you can quiz |
+| --- | --- | --- |
+| 1 | Welcome to ACME Corp | Founded **1997** by **Wilma Coyote** in **Albuquerque**, HQ moved to **Phoenix** in 2014, **312 employees**, flagship **RoadRunner Trail Pack 38L**. |
+| 2 | Returns and refunds | **30-day** window, refunds within **7 business days**, *final sale* and *gift cards* excluded, warranty via `support@acme.example`. |
+| 3 | Remote-work policy | Up to **3 days/week** remote, relocation > **50 km** needs People Ops approval, **USD 1,200** home-office stipend, receipts within **60 days**. |
+
+Upload `sample_data/acme_handbook.pdf` in the Streamlit UI, then ask the
+questions in the table below. Each one is engineered to exercise a
+different retrieval / grounding behaviour.
+
+| # | Question | What it tests | Expected answer (and citation) |
+| --- | --- | --- | --- |
+| 1 | *Who founded ACME and in what year?* | Single-fact lookup on page 1. | "Wilma Coyote, in 1997 [1]." |
+| 2 | *How long do customers have to return an item?* | Single-fact lookup on page 2. | "30 days from delivery [1]." |
+| 3 | *What is the home-office stipend and what is it for?* | Multi-fact answer from one chunk on page 3. | "USD 1,200 for desk, chair, monitor or ergonomic accessories [1]." |
+| 4 | *Compare the returns policy with the warranty policy.* | Forces retrieval of **two** chunks from page 2. | Should cite **both** `[1]` and `[2]`. |
+| 5 | *Who won the 2024 Super Bowl?* | Off-topic refusal — proves the grounding rule works. | "I don't know based on the provided context." |
+| 6 | *What is the salary of the CEO?* | Plausible-but-absent fact — must NOT be invented. | Refusal, same as #5. |
+
+> 💡 **Tip — verify retrievals, not just answers.** Open the
+> *"Retrieved context"* expander after each question. For Q1 you should
+> see page-1 chunks at the top with similarity ≥ 0.5; for Q5/Q6 the top
+> chunks will look semantically distant (similarity < 0.3) — that is
+> exactly when the model should refuse.
+
+---
+
 ## 🧪 Test plan
 
-Use any PDF you have on disk. Below is a script you can follow to verify
-that **all four guarantees of RAG** hold.
+The walkthrough above gives you concrete inputs. The checklist below
+lists the **four guarantees of RAG** to verify against any PDF (yours
+or `acme_handbook.pdf`).
 
 ### Test 1 — Indexing actually happened
 
@@ -266,5 +306,6 @@ Plus the runtime knob:
 
 - [app.py](app.py) — the single-file Streamlit application.
 - [requirements.txt](requirements.txt) — `streamlit`, `pypdf`, `sentence-transformers`, `faiss-cpu`, `openai`, `python-dotenv`.
+- [sample_data/make_sample_pdf.py](sample_data/make_sample_pdf.py) — generates a 3-page fake handbook (`acme_handbook.pdf`) for testing. Requires `fpdf2`.
 - [.env.example](.env.example) — copy to `.env` and add your `OPENROUTER_API_KEY`.
-- [.gitignore](.gitignore) — excludes `.venv/`, `.env`, `*.pdf`.
+- [.gitignore](.gitignore) — excludes `.venv/`, `.env`, `*.pdf` (so the generated sample PDF stays local).

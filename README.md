@@ -116,6 +116,16 @@ streamlit run app.py       # PoC 1, 2
 python agent.py            # PoC 3
 ```
 
+> 💡 **No data of your own?** Each PoC ships with example data and a
+> guided test walkthrough — see the *"📚 Example data"* section in
+> every PoC's README:
+>
+> | PoC | Example data | How to generate / use it |
+> | --- | --- | --- |
+> | 1 — RAG over PDF | `sample_data/acme_handbook.pdf` (3-page fake company handbook) | `pip install fpdf2 && python sample_data/make_sample_pdf.py`, then upload in the UI. README lists 6 example questions with expected answers. |
+> | 2 — Vector search | `data/products.csv` (2,000 synthetic products) | Auto-generated on first launch by `sample_data.py`. README lists 5 example queries that exercise synonyms, filters, and refusal. |
+> | 3 — ReAct agent | `_KB` dictionary in `tools.py` (9 facts) | Already in code. README lists 6 example commands ranging from pure search to multi-step reasoning to safety-boundary tests. |
+
 ---
 
 ## Repository layout
@@ -128,6 +138,8 @@ RAG-Vector-Databases-Agentic-AI/
 ├── poc1_rag_pdf/                   ← PoC 1: RAG over a PDF
 │   ├── README.md                   ← walk-through, prompt, test plan
 │   ├── app.py                      ← single-file Streamlit app
+│   ├── sample_data/                ← test PDF generator (fpdf2)
+│   │   └── make_sample_pdf.py
 │   ├── requirements.txt
 │   ├── .env.example                ← copy to .env and add your key
 │   └── .gitignore
@@ -142,7 +154,7 @@ RAG-Vector-Databases-Agentic-AI/
 └── poc3_react_agent/               ← PoC 3: ReAct agent with tools
     ├── README.md
     ├── agent.py                    ← the ReAct loop + LLM client
-    ├── tools.py                    ← calculator, search, final_answer
+    ├── tools.py                    ← calculator, search, final_answer (+ _KB)
     ├── requirements.txt
     ├── .env.example
     └── .gitignore
