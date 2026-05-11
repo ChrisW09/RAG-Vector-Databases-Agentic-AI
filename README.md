@@ -16,7 +16,7 @@ vector search, to autonomous tool-using agents.
 
 Built as the hands-on companion to the lecture
 *"Building with Large Language Models — LLMs, RAG, Vector Databases &
-Agentic AI"* by Prof. Dr. Christoph Weisser (HSBI, April 2026).
+Agentic AI"* by Prof. Dr. Christoph Weisser (April 2026).
 
 > **Pedagogical goal.** Every PoC was generated end-to-end by pasting a
 > single, well-structured prompt into **GitHub Copilot Chat in Agent mode**.
